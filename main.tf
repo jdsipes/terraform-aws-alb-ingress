@@ -1,9 +1,5 @@
 locals {
-  create_target_group = "${var.target_group_arn == "" ? "true" : "false"}"
-}
-
-locals {
-  target_group_arn = "${local.create_target_group == "true" ? aws_lb_target_group.default.arn : var.target_group_arn}"
+  target_group_arn = "${var.target_group_arn == "" ? aws_lb_target_group.default.arn : var.target_group_arn}"
 }
 
 data "aws_lb_target_group" "default" {
@@ -11,7 +7,7 @@ data "aws_lb_target_group" "default" {
 }
 
 module "default_label" {
-  enabled    = "${local.create_target_group}"
+  enabled    = "${var.target_group_arn == "" ? "true" : "false"}"
   source     = "git::https://github.com/cloudposse/terraform-terraform-label.git?ref=tags/0.1.3"
   attributes = "${var.attributes}"
   delimiter  = "${var.delimiter}"
@@ -22,7 +18,7 @@ module "default_label" {
 }
 
 resource "aws_lb_target_group" "default" {
-  count       = "${local.create_target_group == "true" ? 1 : 0}"
+  count       = "${var.target_group_arn == "" ? 1 : 0}"
   name        = "${module.default_label.id}"
   port        = "${var.port}"
   protocol    = "${var.protocol}"
